@@ -86,7 +86,7 @@ export function ReleaseCalendar({ initialFrom, initialTo }: { initialFrom?: stri
       <section className="hero">
         <div className="hero-top">
           <h1>{title}</h1>
-          <a className="admin-link" href="/admin/releases">
+          <a className="admin-link" href="/admin/calendar">
             Back Office
           </a>
         </div>

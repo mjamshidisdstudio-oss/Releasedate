@@ -70,6 +70,37 @@ test("create → move → mark released in the Back Office updates the calendar"
   await expect(page.locator('[data-date="2026-10-14"]').getByTestId("release-card")).toContainText("Released");
 });
 
+test("Back Office calendar: add an event on a day, open a release and move it", async ({ page }) => {
+  await page.goto("/admin/calendar?date=2026-10-01&mode=gregorian");
+  await expect(page).toHaveURL(/\/admin\/login/);
+  await page.getByLabel("Username").fill("admin");
+  await page.getByLabel("Password").fill("Admin@1405!");
+  await page.getByRole("button", { name: "Log in" }).click();
+  await expect(page.getByRole("heading", { name: "October 2026", level: 1 })).toBeVisible();
+
+  // Click a day → Add → Event, with the date filled in
+  const dialog = page.getByRole("dialog");
+  await page.getByRole("button", { name: /^Add on .*12 Oct 2026$/ }).click();
+  await dialog.getByRole("button", { name: /^Event/ }).click();
+  await expect(dialog.getByLabel("Date")).toHaveValue("2026-10-12");
+  await dialog.getByLabel("Title").fill("E2E Calendar Event");
+  await dialog.getByRole("button", { name: "Save" }).click();
+  await expect(page.locator(".cal-chip.event", { hasText: "E2E Calendar Event" })).toBeVisible();
+
+  // Click a release → details with actions → Move
+  await page.getByTestId("calendar-release").filter({ hasText: "HDR Service Release" }).click();
+  await expect(dialog).toContainText("Schedule history");
+  await dialog.getByRole("button", { name: "Move" }).click();
+  await expect(dialog.getByRole("heading", { name: "Move release" })).toBeVisible();
+  await dialog.getByLabel("New date").fill("2026-10-08");
+  await dialog.getByRole("button", { name: "Move release" }).click();
+  await expect(dialog).toHaveCount(0);
+
+  const res = await page.request.get("/api/release-calendar?from=2026-10-08&to=2026-10-08");
+  const body = await res.json();
+  expect(body.releases.map((r: { title: string }) => r.title)).toContain("HDR Service Release");
+});
+
 test("mutations are rejected without an admin session", async ({ request }) => {
   const res = await request.post("/api/releases", {
     data: { title: "x", teams: ["backend"], releaseDate: "2026-10-01" },

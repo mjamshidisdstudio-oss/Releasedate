@@ -31,7 +31,7 @@ interface Props<T extends { id: string; archivedAt: string | null }> {
   emptyForm: Record<string, string>;
 }
 
-function toPayload(fields: FieldDef[], form: Record<string, string>) {
+export function toPayload(fields: FieldDef[], form: Record<string, string>) {
   const payload: Record<string, unknown> = {};
   for (const field of fields) {
     const value = form[field.name] ?? "";
@@ -149,42 +149,54 @@ export function RecordManager<T extends { id: string; archivedAt: string | null 
   );
 }
 
-function RecordForm({
+/** Create/edit form for one record. With `onArchive`, the footer also offers "Deactivate". */
+export function RecordForm({
   title,
+  subtitle,
   fields,
   initial,
   onClose,
   onSubmit,
+  onArchive,
 }: {
   title: string;
+  subtitle?: string;
   fields: FieldDef[];
   initial: Record<string, string>;
   onClose: () => void;
   onSubmit: (form: Record<string, string>) => Promise<void>;
+  onArchive?: () => Promise<void>;
 }) {
   const [form, setForm] = useState(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const set = (name: string, value: string) => setForm((f) => ({ ...f, [name]: value }));
 
-  const submit = async () => {
+  const run = async (fn: () => Promise<void>) => {
     setBusy(true);
     setError(null);
     try {
-      await onSubmit(form);
+      await fn();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
     } finally {
       setBusy(false);
     }
   };
+  const submit = () => run(() => onSubmit(form));
 
   return (
     <Modal
       title={title}
+      subtitle={subtitle}
       onClose={onClose}
       footer={
         <>
+          {onArchive && (
+            <button className="btn danger footer-start" disabled={busy} onClick={() => run(onArchive)}>
+              Deactivate
+            </button>
+          )}
           <button className="btn" onClick={onClose}>
             Close
           </button>

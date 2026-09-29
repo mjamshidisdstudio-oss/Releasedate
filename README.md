@@ -4,6 +4,9 @@ Release Management (Back Office) + a public, data-driven **Release Calendar**.
 
 - `/`: public, read-only release calendar (horizontal, sprint markers, holidays, moved history, Executive Summary)
 - `/admin`: Back Office to create, edit, move, release, cancel and reopen releases, and manage sprints, events and Iran official holidays
+- `/admin/calendar` (the Back Office home): Google Calendar–style month grid (Jalali or Gregorian months, Sunday → Saturday weeks).
+  Click a day, or drag across several, to add a release, event, sprint or holiday with the dates filled in. Click any item to open,
+  edit or deactivate it. Drag a release to another day to **Move** it (recorded in history, reason optional); drag an event to change its date.
 
 The database is the only source of truth. The calendar is rebuilt from the API on every load.
 

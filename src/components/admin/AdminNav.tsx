@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { api } from "./api";
 
 const LINKS = [
+  { href: "/admin/calendar", label: "Calendar" },
   { href: "/admin/releases", label: "Releases" },
   { href: "/admin/sprints", label: "Sprints" },
   { href: "/admin/events", label: "Events" },
@@ -19,7 +20,7 @@ export function AdminNav({ username }: { username: string }) {
   };
   return (
     <header className="admin-header">
-      <a className="brand" href="/admin/releases">
+      <a className="brand" href="/admin/calendar">
         Release Management
       </a>
       <nav className="admin-nav">
@@ -29,7 +30,7 @@ export function AdminNav({ username }: { username: string }) {
           </a>
         ))}
         <a href="/" target="_blank" rel="noreferrer">
-          Calendar ↗
+          Public calendar ↗
         </a>
       </nav>
       <div className="admin-user">

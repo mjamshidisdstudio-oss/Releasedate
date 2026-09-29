@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const { next } = await searchParams;
   // Only allow same-site relative redirects.
-  const target = next && next.startsWith("/admin") && !next.startsWith("//") ? next : "/admin/releases";
+  const target = next && next.startsWith("/admin") && !next.startsWith("//") ? next : "/admin/calendar";
   if (await currentAdmin()) redirect(target);
   return <LoginForm next={target} />;
 }
