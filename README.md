@@ -47,7 +47,8 @@ Put it behind HTTPS. If it is served over plain HTTP, set `COOKIE_SECURE=false`,
 | `sprints` | Sprint number + start/end. Transition markers ("Sprint 87 → 88") are derived from start dates. |
 | `calendar_events` | Company events (e.g. Madrid Event) |
 | `holidays` | Iran official holidays (1405 seeded). Friday/Saturday weekends are computed, not stored. |
-| `admin_users` | Back Office users (scrypt password hashes) |
+| `admin_users` | Back Office users (scrypt password hashes). Add people under Back Office → Users. |
+| `api_tokens` | Personal MCP tokens: SHA-256 hash only, owner, last used, revoked. Revoked, never deleted. |
 
 Sprints, events and holidays are deactivated (archived), never hard-deleted. Releases are cancelled, never deleted.
 
@@ -70,8 +71,34 @@ Sprints, events and holidays are deactivated (archived), never hard-deleted. Rel
 | GET | `/api/releases/:id/history` | admin |
 | GET / POST, PUT / PATCH(archive) | `/api/sprints`, `/api/events`, `/api/holidays` (+ `/:id`) | admin |
 | POST | `/api/auth/login` · `/logout` · `/password` | – / session |
+| GET / POST | `/api/users` | admin |
+| GET / POST, PATCH(revoke) | `/api/tokens` (+ `/:id`): the signed-in user's own tokens | admin |
+| POST | `/api/mcp` (MCP, Streamable HTTP) | `Authorization: Bearer rdt_…` |
 
 Mutations require an admin session cookie, a same-origin request and a JSON body.
+
+## MCP (Claude and other MCP clients)
+
+`/api/mcp` is a stateless Streamable HTTP MCP endpoint, so Claude can read, analyze and edit the calendar from chat:
+"what slipped this quarter?", "add these releases from this roadmap", "move HDR to 20 Mehr because QA is late".
+
+1. Back Office → **Account** → **API tokens** → *New Token*. The token (`rdt_…`) is shown once, with a ready-made command.
+2. Add it to Claude Code once:
+
+   ```bash
+   claude mcp add --scope user --transport http releasedate http://<host>:3852/api/mcp --header "Authorization: Bearer rdt_…"
+   ```
+
+A token acts as its owner: new releases and moves are recorded under that user, so give each person their own
+Back Office user (Back Office → **Users**) and token. Revoking a token takes effect immediately.
+
+Tools: `get_calendar`, `list_releases`, `get_release`, `analyze_releases` (status/team/sprint counts, overdue, slip vs
+first plan with reasons, on-time delivery, next 14 days), `list_planning` (read-only), and `create_releases` (1–50),
+`update_release`, `move_release`, `change_release_status`, `save_sprint`, `save_event`, `save_holiday`,
+`archive_planning_record`. They call the same services and validation as the API, so every rule above still applies.
+
+To use it from claude.ai (web/mobile) the endpoint must be reachable from the internet over HTTPS; that also needs an
+OAuth flow, which is not implemented yet. Inside the network (or over VPN) the token header is enough.
 
 ## Tests
 

@@ -23,11 +23,19 @@ export const createReleaseSchema = z
   })
   .strict();
 
-/** Date, releasedAt and released/cancelled status are deliberately not editable here. */
+/**
+ * Date, releasedAt and released/cancelled status are deliberately not editable here.
+ * A missing description leaves it unchanged; null or "" clears it.
+ */
 export const updateReleaseSchema = z
   .object({
     title: title.optional(),
-    description,
+    description: z
+      .string()
+      .trim()
+      .max(5000)
+      .nullish()
+      .transform((v) => (v === undefined ? undefined : v || null)),
     type: z.enum(RELEASE_TYPES).optional(),
     teams: teams.optional(),
     dueBefore: z.boolean().optional(),
@@ -110,3 +118,20 @@ export const changePasswordSchema = z
     newPassword: z.string().min(10, "Use at least 10 characters").max(200),
   })
   .strict();
+
+export const createUserSchema = z
+  .object({
+    username: z
+      .string()
+      .trim()
+      .min(2, "Username needs at least 2 characters")
+      .max(50)
+      .regex(/^[A-Za-z0-9._-]+$/, "Use letters, digits, dot, dash or underscore"),
+    displayName: z.string().trim().min(1, "Display name cannot be empty").max(100),
+    password: z.string().min(10, "Use at least 10 characters").max(200),
+  })
+  .strict();
+
+export const createTokenSchema = z.object({ name: z.string().trim().min(1, "Give the token a name").max(100) }).strict();
+
+export const revokeTokenSchema = z.object({ revoked: z.literal(true) }).strict();

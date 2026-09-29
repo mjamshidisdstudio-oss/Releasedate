@@ -148,3 +148,10 @@
 .add-option span{font-size:12px;color:var(--muted)}
 .add-option.release{border-left-color:#4073d8}.add-option.event{border-left-color:#312e81}
 .add-option.sprint{border-left-color:var(--sprint-border)}.add-option.holiday{border-left-color:#f97316}
+
+/* Account: password + API tokens */
+.stack{display:flex;flex-direction:column;gap:16px}
+.textarea.code,.data-table code,.modal code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+.textarea.code{min-height:0;word-break:break-all;background:#f8fafc}
+.modal code{background:#f2f4f7;border-radius:5px;padding:1px 5px}
+.modal .field > .btn{align-self:flex-start}

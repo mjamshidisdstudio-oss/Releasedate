@@ -46,6 +46,12 @@ describe("create release", () => {
     expect(createReleaseSchema.safeParse({ title: "x", teams: ["backend"], releaseDate: "2026-09-23", status: "released" }).success).toBe(false);
   });
 
+  it("keeps the description when an edit leaves it out, and clears it only when asked", async () => {
+    const r = await create({ description: "HDR flow" });
+    expect((await service.update(r.id, updateReleaseSchema.parse({ status: "ready" }))).description).toBe("HDR flow");
+    expect((await service.update(r.id, updateReleaseSchema.parse({ description: "" }))).description).toBeNull();
+  });
+
   it("does not accept the date, releasedAt or released status through a normal edit", () => {
     expect(updateReleaseSchema.safeParse({ currentDate: "2026-10-01" }).success).toBe(false);
     expect(updateReleaseSchema.safeParse({ releasedAt: new Date().toISOString() }).success).toBe(false);
