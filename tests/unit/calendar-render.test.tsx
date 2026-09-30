@@ -15,6 +15,7 @@ const hdr: ReleaseDTO = {
   dueBefore: false,
   releasedAt: null,
   cancelledAt: null,
+  hiddenAt: null,
   teams: ["backend", "frontend"],
   createdBy: null,
   createdAt: "2026-08-01T00:00:00Z",

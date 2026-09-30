@@ -12,6 +12,7 @@ function release(overrides: Partial<ReleaseDTO> & { id: string; currentDate: str
     dueBefore: false,
     releasedAt: null,
     cancelledAt: null,
+    hiddenAt: null,
     teams: ["backend"],
     createdBy: null,
     createdAt: `2026-08-01T00:00:${String(seq++ % 60).padStart(2, "0")}Z`,

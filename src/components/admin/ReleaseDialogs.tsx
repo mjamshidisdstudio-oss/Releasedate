@@ -27,6 +27,8 @@ export type ReleaseDialog =
   | { kind: "release"; release: ReleaseDTO }
   | { kind: "cancel"; release: ReleaseDTO }
   | { kind: "reopen"; release: ReleaseDTO }
+  | { kind: "hide"; release: ReleaseDTO }
+  | { kind: "unhide"; release: ReleaseDTO }
   | { kind: "history"; release: ReleaseDTO };
 
 export type ReleaseAction = Exclude<ReleaseDialog["kind"], "create">;
@@ -80,6 +82,15 @@ export function ReleaseActions({
           History
         </button>
       )}
+      {release.hiddenAt ? (
+        <button className="btn small" onClick={() => onAction("unhide")}>
+          Unhide
+        </button>
+      ) : (
+        <button className="btn small danger" onClick={() => onAction("hide")}>
+          Hide
+        </button>
+      )}
     </div>
   );
 }
@@ -129,6 +140,32 @@ export function ReleaseDialogHost({
           text="Sets the status back to Planned and clears the released/cancelled time. Use this to correct a mistake."
           action="Reopen"
           path="reopen"
+          onClose={onClose}
+          onDone={onDone}
+        />
+      );
+    case "hide":
+      return (
+        <ConfirmDialog
+          release={dialog.release}
+          title="Hide release"
+          text="The card disappears from the calendar, the Executive Summary and the release list, including its faded Moved cards. Nothing is deleted: the release and its schedule history stay in the database, and you can bring it back from the Hidden filter."
+          action="Hide"
+          path="visibility"
+          body={{ hidden: true }}
+          onClose={onClose}
+          onDone={onDone}
+        />
+      );
+    case "unhide":
+      return (
+        <ConfirmDialog
+          release={dialog.release}
+          title="Unhide release"
+          text="The release shows on the calendar and in the release list again, exactly as before it was hidden."
+          action="Unhide"
+          path="visibility"
+          body={{ hidden: false }}
           onClose={onClose}
           onDone={onDone}
         />
@@ -377,9 +414,17 @@ function ConfirmDialog({
   text,
   action,
   path,
+  body,
   onClose,
   onDone,
-}: DialogProps & { release: ReleaseDTO; title: string; text: string; action: string; path: "cancel" | "reopen" }) {
+}: DialogProps & {
+  release: ReleaseDTO;
+  title: string;
+  text: string;
+  action: string;
+  path: "cancel" | "reopen" | "visibility";
+  body?: unknown;
+}) {
   const { busy, error, run } = useSubmit(onDone);
   return (
     <Modal
@@ -392,9 +437,9 @@ function ConfirmDialog({
             Back
           </button>
           <button
-            className={`btn ${path === "cancel" ? "danger" : "primary"}`}
+            className={`btn ${path === "cancel" || action === "Hide" ? "danger" : "primary"}`}
             disabled={busy}
-            onClick={() => run(() => api(`/api/releases/${release.id}/${path}`, { method: "POST" }))}
+            onClick={() => run(() => api(`/api/releases/${release.id}/${path}`, { method: "POST", body }))}
           >
             {action}
           </button>

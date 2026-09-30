@@ -11,6 +11,7 @@ const release = (over: Partial<ReleaseDTO> & { id: string }): ReleaseDTO => ({
   dueBefore: false,
   releasedAt: null,
   cancelledAt: null,
+  hiddenAt: null,
   teams: ["backend"],
   createdBy: null,
   createdAt: "2026-08-01T00:00:00Z",

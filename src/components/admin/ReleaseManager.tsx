@@ -15,9 +15,10 @@ interface Filters {
   from: string;
   to: string;
   needsUpdate: boolean;
+  hidden: boolean;
 }
 
-const EMPTY_FILTERS: Filters = { q: "", status: "", team: "", from: "", to: "", needsUpdate: false };
+const EMPTY_FILTERS: Filters = { q: "", status: "", team: "", from: "", to: "", needsUpdate: false, hidden: false };
 
 export function ReleaseManager() {
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
@@ -35,6 +36,7 @@ export function ReleaseManager() {
     if (filters.from) params.set("from", filters.from);
     if (filters.to) params.set("to", filters.to);
     if (filters.needsUpdate) params.set("needsUpdate", "true");
+    if (filters.hidden) params.set("hidden", "true");
     let cancelled = false;
     const timer = setTimeout(() => {
       Promise.all([api<ReleaseDTO[]>(`/api/releases?${params}`), api<ReleaseDTO[]>(`/api/releases?needsUpdate=true`)])
@@ -120,6 +122,10 @@ export function ReleaseManager() {
         <label className="check">
           <input type="checkbox" checked={filters.needsUpdate} onChange={(e) => set("needsUpdate", e.target.checked)} />
           Needs update (overdue)
+        </label>
+        <label className="check">
+          <input type="checkbox" checked={filters.hidden} onChange={(e) => set("hidden", e.target.checked)} />
+          Hidden only
         </label>
         {JSON.stringify(filters) !== JSON.stringify(EMPTY_FILTERS) && (
           <button className="btn small" onClick={() => setFilters(EMPTY_FILTERS)}>

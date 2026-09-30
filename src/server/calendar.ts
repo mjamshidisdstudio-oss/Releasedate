@@ -15,6 +15,7 @@ export class CalendarService {
     const [releases, sprints, previousSprint, events, holidays] = await Promise.all([
       this.db.release.findMany({
         where: {
+          hiddenAt: null,
           OR: [{ currentDate: range }, { scheduleChanges: { some: { previousDate: range } } }],
         },
         include: releaseInclude,

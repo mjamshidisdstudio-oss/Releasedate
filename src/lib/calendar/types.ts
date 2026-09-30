@@ -23,6 +23,8 @@ export interface ReleaseDTO {
   dueBefore: boolean;
   releasedAt: string | null;
   cancelledAt: string | null;
+  /** Set when an admin hid the release; hidden releases never reach the calendar. */
+  hiddenAt: string | null;
   teams: Team[];
   createdBy: string | null;
   createdAt: string;

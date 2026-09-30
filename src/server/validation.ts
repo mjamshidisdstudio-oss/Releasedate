@@ -70,7 +70,13 @@ export const listReleasesSchema = z.object({
     .enum(["true", "false"])
     .optional()
     .transform((v) => v === "true"),
+  hidden: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((v) => v === "true"),
 });
+
+export const hideReleaseSchema = z.object({ hidden: z.boolean() }).strict();
 
 const MAX_RANGE_DAYS = 370;
 

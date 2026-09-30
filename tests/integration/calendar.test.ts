@@ -124,3 +124,25 @@ describe("seeded roadmap", () => {
     expect(view.days.find((d) => d.date === "2026-08-30")!.holidays).toHaveLength(1);
   });
 });
+
+describe("hidden releases", () => {
+  it("hidden release disappears from the calendar and default list but keeps its data and history", async () => {
+    const r = await releases.create(
+      createReleaseSchema.parse({ title: "To hide", teams: ["frontend"], releaseDate: "2026-09-20" }),
+      actor,
+    );
+    await releases.move(r.id, { newDate: "2026-09-25", reason: "test" }, actor);
+    await releases.setHidden(r.id, true);
+
+    const hiddenView = buildCalendarView(await calendar.getCalendar("2026-09-15", "2026-09-30"));
+    expect(hiddenView.summary).toHaveLength(0);
+    expect((await releases.list({ status: [], needsUpdate: false })).map((x) => x.id)).not.toContain(r.id);
+    expect((await releases.list({ status: [], needsUpdate: false, hidden: true })).map((x) => x.id)).toEqual([r.id]);
+    expect(await releases.history(r.id)).toHaveLength(1);
+    expect(await prisma.release.count()).toBe(1);
+
+    await releases.setHidden(r.id, false);
+    const view = buildCalendarView(await calendar.getCalendar("2026-09-15", "2026-09-30"));
+    expect(view.summary.map((row) => row.kind).sort()).toEqual(["moved", "release"]);
+  });
+});

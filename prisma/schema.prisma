@@ -87,6 +87,8 @@ model Release {
   /// Actual release moment (UTC). Only set through the release workflow.
   releasedAt  DateTime?     @db.Timestamptz(3)
   cancelledAt DateTime?     @db.Timestamptz(3)
+  /// Hidden from the calendar and default lists. Soft delete only: the row and its history stay.
+  hiddenAt    DateTime?     @db.Timestamptz(3)
   createdById String?       @db.Uuid
   createdBy   AdminUser?    @relation("ReleaseCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   createdAt   DateTime      @default(now()) @db.Timestamptz(3)

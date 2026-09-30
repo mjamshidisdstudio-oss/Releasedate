@@ -61,6 +61,7 @@ export function toReleaseDTO(release: ReleaseWithRelations, today: IsoDate = tod
     dueBefore: release.dueBefore,
     releasedAt: release.releasedAt?.toISOString() ?? null,
     cancelledAt: release.cancelledAt?.toISOString() ?? null,
+    hiddenAt: release.hiddenAt?.toISOString() ?? null,
     teams: sortTeams(release.teams.map((t) => t.team as Team)),
     createdBy: release.createdBy?.username ?? null,
     createdAt: release.createdAt.toISOString(),
@@ -74,7 +75,7 @@ export function toReleaseDTO(release: ReleaseWithRelations, today: IsoDate = tod
 export class ReleaseService {
   constructor(private readonly db: PrismaClient = defaultPrisma) {}
 
-  async list(filters: z.output<typeof listReleasesSchema>): Promise<ReleaseDTO[]> {
+  async list(filters: Omit<z.output<typeof listReleasesSchema>, "hidden"> & { hidden?: boolean }): Promise<ReleaseDTO[]> {
     const today = todayInTehran();
     const where: Prisma.ReleaseWhereInput = {};
     if (filters.status.length) where.status = { in: filters.status };
@@ -85,6 +86,8 @@ export class ReleaseService {
         ...(filters.to ? { lte: fromIsoDate(filters.to) } : {}),
       };
     }
+    // Hidden releases only show up when asked for explicitly.
+    where.hiddenAt = filters.hidden ? { not: null } : null;
     if (filters.q) where.title = { contains: filters.q, mode: "insensitive" };
     if (filters.needsUpdate) {
       where.AND = [{ status: { in: [...OPEN_STATUSES] } }, { currentDate: { lt: fromIsoDate(today) } }];
@@ -194,6 +197,18 @@ export class ReleaseService {
       if (release.status === "cancelled") throw conflict("Release is already cancelled");
       if (release.status === "released") throw conflict("A released release cannot be cancelled");
       await tx.release.update({ where: { id }, data: { status: "cancelled", cancelledAt: now } });
+      return toReleaseDTO(await this.load(tx, id));
+    });
+  }
+
+  /**
+   * Hide or unhide a release everywhere (calendar, summary, default lists). Soft delete only:
+   * the release, its teams and its schedule history are kept and it can be restored.
+   */
+  async setHidden(id: string, hidden: boolean, now = new Date()): Promise<ReleaseDTO> {
+    return this.db.$transaction(async (tx) => {
+      await this.load(tx, id, true);
+      await tx.release.update({ where: { id }, data: { hiddenAt: hidden ? now : null } });
       return toReleaseDTO(await this.load(tx, id));
     });
   }
